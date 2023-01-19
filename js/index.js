@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const likeBtn = document.createElement('button');
         likeBtn.classList.add('btn');
+        likeBtn.setAttribute("style", "cursor: pointer")
         likeBtn.textContent = 'Like';
 
         const userList = document.createElement('ul');
@@ -35,6 +36,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const bookLikers = books.users.map(user => {return user.username});
         bookLikers.forEach(user => {
             const listItem = document.createElement('li')
+            listItem.setAttribute("id", user)
+            listItem.setAttribute("style", "cursor: pointer")
             listItem.textContent = user;
             userList.append(listItem);
         });
@@ -51,35 +54,37 @@ document.addEventListener("DOMContentLoaded", function() {
                     users: 
                     [...books.users,                    
                     {id: parseInt(userId), username: userName}
-                    // ^^ Is there a better way to add the new user to the list than this? The lab said to use PATCH instead of POST, but wouldnt POST be the better option? 
                 ]
                 })
             })
             .then (() => {
                 const listItem = document.createElement('li');
+                listItem.setAttribute("id", userName)
                 listItem.textContent = userName;
+                listItem.setAttribute("style", "cursor: pointer")
                 userList.append(listItem);
+                books.users = [...books.users,                    
+                    {id: parseInt(userId), username: userName}]
             })
             .then (() => {
                 likeBtn.textContent = 'Unlike';
             })
         } else if (likeBtn.textContent === 'Unlike'){
+            books.users = [...books.users.filter(user => user.username !== userName)]
+            console.log(books.users);
             fetch('http://localhost:3000/books/' + books.id, {
                 method: "PATCH",
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    users: 
-                    [...books.users]
-                    // ^^ Why does this work? Wouldn't books.users include the newest like at this point? This would only be available once the Like button was clicked, which should mean that the newest user would be part of the list.
+                    users: books.users
                 })
             })
             .then (() => {
-                const listItem = userList.querySelectorAll('li');
-                const last = listItem[listItem.length - 1]
-                // ^^ This feels like cheating. I know that in this scenario the user I want to remove is the last one in the list, but what if it wasn't?
-                last.remove();
+                const currentUser = userList.querySelector(`#${userName}`);
+                console.log(currentUser);
+                currentUser.remove();
             })
             .then (() => {
                 likeBtn.textContent = 'Like';
@@ -89,6 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         const renderItem = document.createElement("li");
         renderItem.classList.add("sidebarBook");
+        renderItem.setAttribute("style", "cursor: pointer")
         renderItem.addEventListener("click", () => {
             if (mainPanel.querySelector('img')){
                 mainPanel.querySelector('.title').remove();
@@ -106,21 +112,28 @@ document.addEventListener("DOMContentLoaded", function() {
             mainPanel.append(description);
             mainPanel.append(likeBtn);
             mainPanel.append(userList);
-            console.log("click");
+            // console.log("click");
         });
 
         list.appendChild(renderItem).textContent = books.title;
 
-        // renderItem.addEventListener("mouseover", console.log("mouseover"));
 
     }
 
     fetch('http://localhost:3000/books')
         .then((response) => response.json())
         .then((data) => {
+            // console.log(data);
             data.forEach(book => {
+                // console.log(book);
             renderList(book);
             })
         })
 
+        // const test = [{id: parseInt(userId), username: userName}]
+        // console.log(test);
+        // const test2 = test.filter(user => user.username !== userName)
+        // console.log(test2);
 });
+
+
